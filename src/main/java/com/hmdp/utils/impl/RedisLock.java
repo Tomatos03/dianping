@@ -7,7 +7,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Description: TODO
@@ -26,7 +25,6 @@ public class RedisLock implements ILock {
     static {
         DEFAULT_SCRIPT = new DefaultRedisScript<>();
         DEFAULT_SCRIPT.setResultType(Long.class);
-        DEFAULT_SCRIPT.setLocation(new ClassPathResource("unlock.lua"));
     }
 
     public RedisLock(StringRedisTemplate stringRedisTemplate, String name) {
@@ -36,19 +34,20 @@ public class RedisLock implements ILock {
 
     @Override
     public boolean tryLock() {
-        String threadName = Thread.currentThread().getName();
-        Boolean isSuccess = stringRedisTemplate.opsForValue()
-                                       .setIfAbsent(
-                                               LOCK_PREFIX + name,
-                                               ID_PREFIX + threadName,
-                                               30,
-                                               TimeUnit.MINUTES
-                                       );
-        return Boolean.TRUE.equals(isSuccess);
+        DEFAULT_SCRIPT.setLocation(new ClassPathResource("relock.lua"));
+        String expireTime = 3600 + "";
+        Long isSuccess = stringRedisTemplate.execute(
+                DEFAULT_SCRIPT,
+                Collections.singletonList(LOCK_PREFIX + name),
+                ID_PREFIX + Thread.currentThread().getName(),
+                expireTime
+        );
+        return isSuccess == 1;
     }
 
     @Override
     public void unlock() {
+        DEFAULT_SCRIPT.setLocation(new ClassPathResource("unrelock.lua"));
         // 使用 Lua 脚本来保证解锁的原子性
         stringRedisTemplate.execute(
                 DEFAULT_SCRIPT,
