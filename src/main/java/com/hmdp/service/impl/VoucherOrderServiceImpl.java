@@ -7,10 +7,10 @@ import com.hmdp.entity.VoucherOrder;
 import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
-import com.hmdp.utils.ILock;
 import com.hmdp.utils.RedisWorker;
 import com.hmdp.utils.UserHolder;
-import com.hmdp.utils.impl.RedisLock;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -38,6 +38,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Transactional
     public Result createOrder(Long userId, Long voucherId) {
@@ -89,9 +92,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         Long userId = UserHolder.getUser()
                                 .getId();
-        ILock redisLock = new RedisLock(stringRedisTemplate, userId + "");
+//        ILock redisLock = new RedisLock(stringRedisTemplate, userId + "");
+//        boolean isSuccess = redisLock.tryLock();
 
-        boolean isSuccess = redisLock.tryLock();
+        RLock lock = redissonClient.getLock("lock:" + userId);
+        boolean isSuccess = lock.tryLock();
         if (!isSuccess) {
             return Result.fail("请稍后再试", 500);
         }
@@ -100,7 +105,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.createOrder(userId, voucherId);
         } finally {
-            redisLock.unlock();
+            lock.unlock();
         }
     }
 }
