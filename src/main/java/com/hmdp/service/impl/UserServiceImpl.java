@@ -59,7 +59,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
     }
 
     @Override
-    public Result login(LoginFormDTO loginFormDTO, HttpSession session) {
+    public Result login(LoginFormDTO loginFormDTO) {
         String phone = loginFormDTO.getPhone();
         if (RegexUtils.isPhoneInvalid(phone)) {
             return Result.fail("手机号格式错误");
@@ -73,8 +73,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         }
 
         // 信息验证成功之后
-        String token = UUID.randomUUID().toString(true);
-        stringRedisTemplate.opsForValue().set("token", token);
+        String uuid = UUID.randomUUID().toString(true);
 
         UserDTO userDTO = query().eq("phone", phone).one();
         if (userDTO == null) {
@@ -86,9 +85,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
                                                                             .setIgnoreNullValue(false)
                                                                             .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
         log.debug("{}", stringObjectMap);
-        String tokenKey = RedisConstants.LOGIN_USER_KEY + token;
-        stringRedisTemplate.opsForHash().putAll(tokenKey, stringObjectMap);
-        stringRedisTemplate.expire(tokenKey, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
+        String token = RedisConstants.LOGIN_USER_KEY + uuid;
+        stringRedisTemplate.opsForHash().putAll(token, stringObjectMap);
+        stringRedisTemplate.expire(token, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
         //        session.setAttribute("user", BeanUtil.copyProperties(userDTO, com.hmdp.dto.UserDTO.class));
         return Result.ok(token);
     }
