@@ -1,4 +1,7 @@
 HELP.md
+tokens.csv
+src/test/
+
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,3 +34,5 @@ build/
 
 ### VS Code ###
 .vscode/
+
+/test
