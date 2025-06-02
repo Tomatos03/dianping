@@ -6,6 +6,7 @@
 
 local voucherId = ARGV[1]
 local userId = ARGV[2]
+local orderId = ARGV[3]
 
 local stockKey = 'seckill:stock:' .. voucherId
 local orderKey = 'seckill:order:' .. voucherId
@@ -21,7 +22,12 @@ end
 
 redis.call('INCRBY', stockKey, -1)
 redis.call('SADD', orderKey, userId)
-
+redis.call(
+    'XADD', 'stream.orders', '*',
+    'id', orderId,
+    'voucherId', voucherId,
+    'userId', userId
+);
 return 0
 
 
