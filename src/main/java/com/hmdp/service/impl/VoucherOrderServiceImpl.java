@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -66,6 +67,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         VOUCHER_ORDER_EXECUTOR.submit(new HandleVoucherOrder());
     }
 
+    @PreDestroy
+    public void shutdownThreadPool() {
+        VOUCHER_ORDER_EXECUTOR.shutdownNow(); // 通知线程中断
+    }
+
     private class HandleVoucherOrder implements Runnable {
 
         private void handleVoucherOrder(VoucherOrder voucherOrder) {
@@ -78,7 +84,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                                                                    .count(1);
             StreamOffset<String> stringStreamOffset = StreamOffset.create(queueName,
                                                                           ReadOffset.from("0"));
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream()
                                                                                       .read(
@@ -116,7 +122,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                                                                    .block(Duration.ofSeconds(2));
             StreamOffset<String> stringStreamOffset = StreamOffset.create(queueName, ReadOffset.lastConsumed());
             try {
-                while (true) {
+                while (!Thread.currentThread().isInterrupted()) {
                     // xreadgroup group groupname consumer_name count 1 block 2000 stream_name
                     List<MapRecord<String, Object, Object>> list = stringRedisTemplate.opsForStream()
                                                                                       .read(
