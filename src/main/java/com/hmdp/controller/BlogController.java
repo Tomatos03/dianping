@@ -2,12 +2,11 @@ package com.hmdp.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hmdp.constants.SystemConstants;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
 import com.hmdp.service.IBlogService;
-import com.hmdp.service.IUserService;
-import com.hmdp.constants.SystemConstants;
 import com.hmdp.utils.UserHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +27,6 @@ public class BlogController {
 
     @Resource
     private IBlogService blogService;
-    @Resource
-    private IUserService userService;
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
@@ -50,6 +47,12 @@ public class BlogController {
         return Result.ok();
     }
 
+    @GetMapping("/{id}")
+    public Result queryBlogById(@PathVariable Long id) {
+        Blog blog = blogService.queryBlogById(id);
+        return Result.ok(blog);
+    }
+
     @GetMapping("/of/me")
     public Result queryMyBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         // 获取登录用户
@@ -64,19 +67,7 @@ public class BlogController {
 
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        // 根据用户查询
-        Page<Blog> page = blogService.query()
-                .orderByDesc("liked")
-                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
-        // 获取当前页数据
-        List<Blog> records = page.getRecords();
-        // 查询用户
-        records.forEach(blog ->{
-            Long userId = blog.getUserId();
-            UserDTO userDTO = userService.getById(userId);
-            blog.setName(userDTO.getNickName());
-            blog.setIcon(userDTO.getIcon());
-        });
-        return Result.ok(records);
+        List<Blog> list = blogService.queryHotBlog(current);
+        return Result.ok(list);
     }
 }
