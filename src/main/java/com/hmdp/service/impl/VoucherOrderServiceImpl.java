@@ -49,7 +49,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     private final static DefaultRedisScript<Long> SECKILL_SCRIPT;
 
-    private final static ExecutorService VOUCHER_ORDER_EXECUTOR = Executors.newFixedThreadPool(30);
+    private final static ExecutorService VOUCHER_ORDER_EXECUTOR = Executors.newFixedThreadPool(300);
 
     private IVoucherOrderService proxy;
     private final String queueName = "stream.orders";
@@ -96,7 +96,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                     VoucherOrder voucherOrder = BeanUtil.toBean(value, VoucherOrder.class);
                     handleVoucherOrder(voucherOrder);
 
-                    stringRedisTemplate.opsForStream().acknowledge("mygoup", entries);
+                    stringRedisTemplate.opsForStream().acknowledge("mygroup", entries);
                 } catch (Exception e) {
                     Log.error("处理待处理异常订单", e);
                     try {
@@ -142,8 +142,17 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
     }
 
+
     @Transactional
     public void createOrder(VoucherOrder voucherOrder) {
+        boolean success = seckillVoucherService.update()
+                                               .setSql("stock = stock - 1")
+                                               .eq("voucher_id", voucherOrder.getVoucherId())
+                                               .gt("stock", 0)
+                                               .update();
+        if (!success) {
+            throw new RuntimeException("库存不足");
+        }
         save(voucherOrder);
     }
 
