@@ -85,11 +85,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
                                                                             .setIgnoreNullValue(false)
                                                                             .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
         log.debug("{}", stringObjectMap);
-        String token = RedisConstants.LOGIN_USER_KEY + uuid;
-        stringRedisTemplate.opsForHash().putAll(token, stringObjectMap);
-        stringRedisTemplate.expire(token, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
+        String key = RedisConstants.LOGIN_USER_KEY + uuid;
+        stringRedisTemplate.opsForHash().putAll(key, stringObjectMap);
+        stringRedisTemplate.expire(key, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
         //        session.setAttribute("user", BeanUtil.copyProperties(userDTO, com.hmdp.dto.UserDTO.class));
-        return Result.ok(token);
+        return Result.ok(uuid);
     }
 
     private UserDTO createdUserWithPhone(String phone) {
