@@ -28,6 +28,14 @@ public class BlogController {
     @Resource
     private IBlogService blogService;
 
+    @GetMapping("/of/user")
+    public Result queryAllBlogById(@RequestParam("id") Long userId,
+                                   @RequestParam(value = "current", defaultValue = "1") Integer current) {
+        // 非分页实现
+        List<Blog> blogs = blogService.queryAllBlogById(userId);
+        return Result.ok(blogs);
+    }
+
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
         // 获取登录用户

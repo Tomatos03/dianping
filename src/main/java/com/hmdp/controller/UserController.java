@@ -42,6 +42,16 @@ public class UserController {
         return userService.sendCode(phone, session);
     }
 
+    @GetMapping("/{id}")
+    public Result queryUserById(@PathVariable("id") Long id) {
+        // 查询用户
+        UserDTO userDTO = userService.queryUserById(id);
+        if (userDTO == null) {
+            return Result.fail("用户不存在");
+        }
+        return Result.ok(userDTO);
+    }
+
     /**
      * 登录功能
      * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码

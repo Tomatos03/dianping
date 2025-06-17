@@ -92,6 +92,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         return Result.ok(uuid);
     }
 
+    @Override
+    public UserDTO queryUserById(Long id) {
+        return this.query()
+                   .eq("id", id)
+                   .one();
+    }
+
     private UserDTO createdUserWithPhone(String phone) {
         UserDTO userDTO = new UserDTO();
 //        userDTO.setPhone(phone);

@@ -3,12 +3,19 @@ package com.hmdp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.entity.Follow;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.mapper.FollowMapper;
 import com.hmdp.service.IFollowService;
+import com.hmdp.service.IUserService;
 import com.hmdp.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -20,6 +27,8 @@ import java.time.LocalDateTime;
  */
 @Service
 public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements IFollowService {
+    @Autowired
+    IUserService userService;
 
     @Override
     public boolean followUser(Long followUserId, boolean isFollow) {
@@ -48,5 +57,34 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
                                                                          followUserId);
         int res = this.count(wrapper);
         return res == 1;
+    }
+
+    public UserDTO queryFollowUser(Long followUserId) {
+        return this.userService.queryUserById(followUserId);
+    }
+
+    public List<Follow> queryFansById(Long userId) {
+        return query().eq("follow_user_id", userId)
+                      .list();
+    }
+
+    @Override
+    public List<UserDTO> queryCommonFollow(Long followUserId) {
+        Long userId = UserHolder.getUser()
+                                .getId();
+        Set<UserDTO> myFollows = this.query()
+                                     .eq("user_id", userId)
+                                     .list()
+                                     .stream()
+                                     .map((follow) -> queryFollowUser(follow.getFollowUserId()))
+                                     .collect(Collectors.toSet());
+        Set<UserDTO> followUserFollows = this.query()
+                                          .eq("user_id", followUserId)
+                                          .list()
+                                          .stream()
+                                          .map((follow) -> queryFollowUser(follow.getFollowUserId()))
+                                          .collect(Collectors.toSet());
+        myFollows.retainAll(followUserFollows);
+        return new ArrayList<>(myFollows);
     }
 }

@@ -105,6 +105,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         return true;
     }
 
+    @Override
+    public List<Blog> queryAllBlogById(Long userId) {
+        return this.query()
+                   .eq("user_id", userId)
+                   .list();
+    }
+
     private void queryBlogUser(Blog blog) {
         Long userId = blog.getUserId();
         UserDTO userDTO = userService.getById(userId);

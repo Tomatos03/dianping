@@ -20,13 +20,18 @@ public class FollowController {
     @Autowired
     IFollowService followService;
 
-     @PutMapping("/{followUserId}/{isFollow}")
-     public Result followUser(@PathVariable Long followUserId, @PathVariable boolean isFollow) {
-         return followService.followUser(followUserId, isFollow) ? Result.ok() : Result.fail("关注失败");
-     }
+    @PutMapping("/{followUserId}/{isFollow}")
+    public Result followUser(@PathVariable Long followUserId, @PathVariable boolean isFollow) {
+        return followService.followUser(followUserId, isFollow) ? Result.ok() : Result.fail("关注失败");
+    }
 
     @GetMapping("/or/not/{followUserId}")
     public Result checkFollow(@PathVariable Long followUserId) {
          return Result.ok(followService.checkFollow(followUserId));
+    }
+
+    @GetMapping("/common/{followUserId}")
+    public Result queryCommonFollow(@PathVariable Long followUserId) {
+        return Result.ok(followService.queryCommonFollow(followUserId));
     }
 }
