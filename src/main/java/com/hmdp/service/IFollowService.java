@@ -1,7 +1,7 @@
 package com.hmdp.service;
 
-import com.hmdp.entity.Follow;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hmdp.entity.Follow;
 
 /**
  * <p>
@@ -12,5 +12,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2021-12-22
  */
 public interface IFollowService extends IService<Follow> {
+    boolean followUser(Long followUserId, boolean flag);
 
+    boolean checkFollow(Long followUserId);
 }
