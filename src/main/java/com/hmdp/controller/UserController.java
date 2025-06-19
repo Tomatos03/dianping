@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -57,8 +58,12 @@ public class UserController {
      * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
      */
     @PostMapping("/login")
-    public Result login(@RequestBody LoginFormDTO loginForm){
-        return userService.login(loginForm);
+    public Result login(@RequestBody LoginFormDTO loginForm, HttpServletResponse response) {
+        String token = userService.login(loginForm, response);
+        if (token == null || token.isEmpty()) {
+            return Result.fail("登录失败，手机号或验证码错误");
+        }
+        return Result.ok(token);
     }
 
     /**

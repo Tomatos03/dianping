@@ -5,6 +5,7 @@ import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -18,7 +19,7 @@ import javax.servlet.http.HttpSession;
 public interface IUserService extends IService<UserDTO> {
     Result sendCode(String phone, HttpSession session);
 
-    Result login(LoginFormDTO loginFormDTO);
+    String login(LoginFormDTO loginFormDTO, HttpServletResponse response);
 
     UserDTO queryUserById(Long id);
 }

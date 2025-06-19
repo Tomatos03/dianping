@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -47,7 +48,17 @@ public class LoginInterceptor implements HandlerInterceptor {
 //            return false;
 //        }
         String token = request.getHeader("authorization");
-        if (StrUtil.isBlank(token)) {
+        if (token == null || StrUtil.isBlank(token)) {
+            Cookie[] cookies = request.getCookies();
+            for (Cookie cookie : cookies) {
+                if (StrUtil.equals(cookie.getName(), "token")) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token == null || StrUtil.isBlank(token)) {
             response.setStatus(401);
             return false;
         }

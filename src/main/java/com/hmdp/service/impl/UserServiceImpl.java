@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,22 +61,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
     }
 
     @Override
-    public Result login(LoginFormDTO loginFormDTO) {
+    public String login(LoginFormDTO loginFormDTO, HttpServletResponse response) {
         String phone = loginFormDTO.getPhone();
         if (RegexUtils.isPhoneInvalid(phone)) {
-            return Result.fail("手机号格式错误");
+            return null;
         }
 
 //        String code = (String) session.getAttribute("code");
-        String code = stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_CODE_KEY + phone);
-
+        String phoneKey = RedisConstants.LOGIN_CODE_KEY + phone;
+        String code = stringRedisTemplate.opsForValue().get(phoneKey);
         if (code == null || !code.equals(loginFormDTO.getCode())) {
-            return Result.fail("验证码错误");
+            return null;
         }
 
         // 信息验证成功之后
-        String uuid = UUID.randomUUID().toString(true);
-
+        stringRedisTemplate.delete(phoneKey);
+        String token = UUID.randomUUID().toString(true);
         UserDTO userDTO = query().eq("phone", phone).one();
         if (userDTO == null) {
             userDTO = createdUserWithPhone(phone);
@@ -82,14 +84,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
 
         Map<String, Object> stringObjectMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
                                                                  CopyOptions.create()
-                                                                            .setIgnoreNullValue(false)
+                                                                            .setIgnoreNullValue(true)
                                                                             .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
         log.debug("{}", stringObjectMap);
-        String key = RedisConstants.LOGIN_USER_KEY + uuid;
+        String key = RedisConstants.LOGIN_USER_KEY + token;
         stringRedisTemplate.opsForHash().putAll(key, stringObjectMap);
         stringRedisTemplate.expire(key, RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
+
+        Cookie cookie = new Cookie("token", token);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24 * 7); // 设置cookie的有效期为7天
+        response.addCookie(cookie);
         //        session.setAttribute("user", BeanUtil.copyProperties(userDTO, com.hmdp.dto.UserDTO.class));
-        return Result.ok(uuid);
+        return token;
     }
 
     @Override
@@ -101,8 +108,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
 
     private UserDTO createdUserWithPhone(String phone) {
         UserDTO userDTO = new UserDTO();
-//        userDTO.setPhone(phone);
-        userDTO.setNickName(SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomNumbers(10));
+        userDTO.setPhone(phone);
+        String randomUserName = SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomNumbers(10);
+        userDTO.setNickName(randomUserName);
         save(userDTO);
         return userDTO;
     }
