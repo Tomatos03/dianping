@@ -22,4 +22,6 @@ public interface IUserService extends IService<UserDTO> {
     String login(LoginFormDTO loginFormDTO, HttpServletResponse response);
 
     UserDTO queryUserById(Long id);
+
+    void logout(HttpServletResponse response);
 }

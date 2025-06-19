@@ -39,9 +39,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
-    @Autowired
-    UserMapper userMapper;
-
     @Override
     public Result sendCode(String phone, HttpSession session) {
         if (RegexUtils.isPhoneInvalid(phone)) {
@@ -104,6 +101,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         return this.query()
                    .eq("id", id)
                    .one();
+    }
+
+    @Override
+    public void logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("token", null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
     }
 
     private UserDTO createdUserWithPhone(String phone) {
