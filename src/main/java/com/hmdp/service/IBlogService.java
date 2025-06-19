@@ -1,6 +1,7 @@
 package com.hmdp.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hmdp.dto.ScrollResult;
 import com.hmdp.entity.Blog;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface IBlogService extends IService<Blog> {
     Boolean likeBlog(Long id);
 
     List<Blog> queryAllBlogById(Long userId);
+
+    ScrollResult queryFollowBlog(Double lastIndex, Integer offset);
 }

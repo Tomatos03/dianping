@@ -2,16 +2,23 @@ package com.hmdp.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hmdp.constants.RedisConstants;
 import com.hmdp.constants.SystemConstants;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.ScrollResult;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
+import com.hmdp.entity.Follow;
 import com.hmdp.service.IBlogService;
+import com.hmdp.service.IFollowService;
 import com.hmdp.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -24,9 +31,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/blog")
 public class BlogController {
-
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
     @Resource
     private IBlogService blogService;
+    @Autowired
+    private IFollowService followService;
 
     @GetMapping("/of/user")
     public Result queryAllBlogById(@RequestParam("id") Long userId,
@@ -38,13 +48,23 @@ public class BlogController {
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
-        // 获取登录用户
-        UserDTO userDTO = UserHolder.getUser();
-        blog.setUserId(userDTO.getId());
-        // 保存探店博文
+        Long userId = UserHolder.getUser().getId();
+        blog.setUserId(userId);
+        // save完成后生成blogId
         blogService.save(blog);
-        // 返回id
+        pushBlogToFans(userId, blog.getId());
         return Result.ok(blog.getId());
+    }
+
+    private void pushBlogToFans(Long userId, Long blogId) {
+        List<Long> fanIds = followService.queryFansById(userId)
+                                          .stream()
+                                          .map(Follow::getUserId)
+                                          .collect(Collectors.toList());
+        for (Long fanId : fanIds) {
+            String feedKey = RedisConstants.FEED_KEY + fanId.toString();
+            redisTemplate.opsForZSet().add(feedKey, blogId, System.currentTimeMillis());
+        }
     }
 
     @PutMapping("/like/{id}")
@@ -74,5 +94,12 @@ public class BlogController {
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
         List<Blog> list = blogService.queryHotBlog(current);
         return Result.ok(list);
+    }
+
+    @GetMapping("/of/follow")
+    public Result queryFollowBlog(@RequestParam("lastId") Double lastIndex,
+                                  @RequestParam(defaultValue = "0") Integer offset) {
+        ScrollResult scrollResult = blogService.queryFollowBlog(lastIndex, offset);
+        return scrollResult == null ? Result.ok() : Result.ok(scrollResult);
     }
 }
