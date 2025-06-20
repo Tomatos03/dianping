@@ -3,6 +3,7 @@ package com.hmdp.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.constants.RedisConstants;
@@ -13,6 +14,7 @@ import com.hmdp.dto.UserDTO;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
+import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -21,6 +23,8 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -101,6 +105,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         return this.query()
                    .eq("id", id)
                    .one();
+    }
+
+    @Override
+    public boolean userSignIn() {
+        Long userId = UserHolder.getUser().getId();
+        LocalDateTime nowTime = LocalDateTime.now();
+        String signKey = String.format("%s:%d:%d:%d", RedisConstants.USER_SIGN_KEY, userId,
+                                       nowTime.getYear(), nowTime.getMonth().getValue());
+        int day = LocalDate.now().getDayOfMonth();
+        Boolean isSign = stringRedisTemplate.opsForValue()
+                                       .setBit(signKey, day - 1, true);
+        return BooleanUtil.isTrue(isSign);
     }
 
     @Override

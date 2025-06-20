@@ -96,4 +96,9 @@ public class UserController {
         // 返回
         return Result.ok(info);
     }
+    @PostMapping("/sign")
+    public Result userSignIn() {
+        boolean isSign = userService.userSignIn();
+        return isSign ? Result.ok() : Result.fail("签到失败");
+    }
 }

@@ -23,5 +23,7 @@ public interface IUserService extends IService<UserDTO> {
 
     UserDTO queryUserById(Long id);
 
+    boolean userSignIn();
+
     void logout(HttpServletResponse response);
 }
