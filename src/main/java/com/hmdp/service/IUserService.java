@@ -5,6 +5,7 @@ import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -25,7 +26,7 @@ public interface IUserService extends IService<UserDTO> {
 
     boolean userSignIn();
 
-    void logout(HttpServletResponse response);
+    boolean logout(HttpServletResponse response, HttpServletRequest request);
 
     int querySignCount();
 }

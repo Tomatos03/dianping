@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -71,9 +72,9 @@ public class UserController {
      * @return 无
      */
     @PostMapping("/logout")
-    public Result logout(HttpServletResponse response){
-        userService.logout(response);
-        return Result.ok();
+    public Result logout(HttpServletResponse response, HttpServletRequest request){
+        boolean isLogout = userService.logout(response, request);
+        return isLogout ? Result.ok() : Result.fail("登出失败");
     }
 
     @GetMapping("/me")

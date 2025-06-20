@@ -22,6 +22,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
@@ -123,12 +124,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
     }
 
     @Override
-    public void logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("token", null);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
+    public boolean logout(HttpServletResponse response, HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        String token = null;
+        for (Cookie cookie : cookies) {
+            if ("token".equals(cookie.getName())) {
+                token = cookie.getValue();
+                break;
+            }
+        }
+        if (token == null) {
+            return true;
+        }
+        String tokenKey = RedisConstants.LOGIN_USER_KEY + token;
+        Boolean isDelete = stringRedisTemplate.delete(tokenKey);
+        return BooleanUtil.isTrue(isDelete);
+//        if (BooleanUtil.isFalse(isDelete)) {
+//            return false;
+//        }
+//        return true;
     }
 
     @Override
