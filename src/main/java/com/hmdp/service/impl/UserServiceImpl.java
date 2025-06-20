@@ -17,6 +17,7 @@ import com.hmdp.utils.RegexUtils;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -125,6 +127,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         cookie.setPath("/");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
+    }
+
+    @Override
+    public int querySignCount() {
+        Long userId = UserHolder.getUser().getId();
+        LocalDateTime nowTime = LocalDateTime.now();
+        String signKey = String.format("%s%d:%d:%d", RedisConstants.USER_SIGN_KEY, userId,
+                                       nowTime.getYear(), nowTime.getMonth().getValue());
+        int dayOfMonth = nowTime.getDayOfMonth();
+        // 这个redis命令能够一次性执行多条命令, 所以返回List
+        // 这里只有一条命令, 所以返回的List只有一个元素
+        // 在Redis中, 低位在左边, 高位在右边
+        // 这个方法读取前dayOfMonth位然后组成二进制字符串(低位在右边, 高位在左边)
+        List<Long> userSignTable = stringRedisTemplate.opsForValue()
+                                              .bitField(
+                                                      signKey,
+                                                      BitFieldSubCommands.create()
+                                                                         .get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth))
+                                                                         .valueAt(0)
+                                              );
+        if (userSignTable == null || userSignTable.isEmpty()) {
+            return -1;
+        }
+        Long userSigns = userSignTable.get(0);
+        if (userSigns == null || userSigns == 0) {
+            return -1;
+        }
+        int userSignCount = 0;
+        while ((userSigns & 1) == 1) {
+            ++userSignCount;
+            userSigns >>= 1;
+        }
+        return userSignCount;
     }
 
     private UserDTO createdUserWithPhone(String phone) {

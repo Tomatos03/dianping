@@ -26,4 +26,6 @@ public interface IUserService extends IService<UserDTO> {
     boolean userSignIn();
 
     void logout(HttpServletResponse response);
+
+    int querySignCount();
 }

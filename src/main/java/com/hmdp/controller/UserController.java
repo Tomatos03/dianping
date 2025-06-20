@@ -101,4 +101,9 @@ public class UserController {
         boolean isSign = userService.userSignIn();
         return isSign ? Result.ok() : Result.fail("签到失败");
     }
+    @GetMapping("/sign/count")
+    public Result querySignCount() {
+        int count = userService.querySignCount();
+        return Result.ok(count);
+    }
 }
