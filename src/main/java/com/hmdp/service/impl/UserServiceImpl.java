@@ -97,6 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         Cookie cookie = new Cookie("token", token);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24 * 7); // 设置cookie的有效期为7天
+        cookie.setHttpOnly(true);
         response.addCookie(cookie);
         //        session.setAttribute("user", BeanUtil.copyProperties(userDTO, com.hmdp.dto.UserDTO.class));
         return token;
@@ -126,6 +127,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         Cookie cookie = new Cookie("token", null);
         cookie.setPath("/");
         cookie.setMaxAge(0);
+        cookie.setHttpOnly(true);
         response.addCookie(cookie);
     }
 
