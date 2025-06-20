@@ -111,7 +111,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
     public boolean userSignIn() {
         Long userId = UserHolder.getUser().getId();
         LocalDateTime nowTime = LocalDateTime.now();
-        String signKey = String.format("%s:%d:%d:%d", RedisConstants.USER_SIGN_KEY, userId,
+        String signKey = String.format("%s%d:%d:%d", RedisConstants.USER_SIGN_KEY, userId,
                                        nowTime.getYear(), nowTime.getMonth().getValue());
         int day = LocalDate.now().getDayOfMonth();
         Boolean isSign = stringRedisTemplate.opsForValue()
