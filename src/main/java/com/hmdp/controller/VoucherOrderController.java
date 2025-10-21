@@ -6,8 +6,6 @@ import com.hmdp.service.IVoucherOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * <p>
  *  前端控制器
@@ -22,13 +20,8 @@ public class VoucherOrderController {
     @Autowired
     IVoucherOrderService voucherOrderService;
 
-    @PostMapping("seckill/{id}")
-    public Result seckillVoucher(@PathVariable("id") Long voucherId, HttpServletResponse response) {
-        Result result = voucherOrderService.seckillVoucher(voucherId);
-        if (result.getCode() != 200) {
-            response.setStatus(result.getCode());
-            return Result.fail(result.getErrorMsg(), result.getCode());
-        }
-        return result;
+    @PostMapping("/seckill/{id}")
+    public Result seckillVoucher(@PathVariable("id") Long voucherId) {
+        return voucherOrderService.seckillVoucher(voucherId);
     }
 }

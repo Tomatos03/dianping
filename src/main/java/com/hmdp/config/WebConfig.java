@@ -17,18 +17,19 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    private static final String[] WHITE_LIST = {
+            "/shop/**",
+            "/voucher/**",
+            "/shop-type/**",
+            "/upload/**",
+            "/blog/hot",
+            "/user/code",
+            "/user/login",
+    };
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        LoginInterceptor loginInterceptor = new LoginInterceptor(stringRedisTemplate);
-        registry.addInterceptor(loginInterceptor)
-                .excludePathPatterns(
-                        "/shop/**",
-                        "/voucher/**",
-                        "/shop-type/**",
-                        "/upload/**",
-                        "/blog/hot",
-                        "/user/code",
-                        "/user/login"
-                );
+        registry.addInterceptor(new LoginInterceptor(stringRedisTemplate))
+                .excludePathPatterns(WHITE_LIST);
     }
 }

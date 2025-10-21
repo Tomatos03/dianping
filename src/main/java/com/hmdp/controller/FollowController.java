@@ -22,7 +22,7 @@ public class FollowController {
 
     @PutMapping("/{followUserId}/{isFollow}")
     public Result followUser(@PathVariable Long followUserId, @PathVariable boolean isFollow) {
-        return followService.followUser(followUserId, isFollow) ? Result.ok() : Result.fail("关注失败");
+        return followService.followUser(followUserId, isFollow) ? Result.ok() : Result.error("关注失败");
     }
 
     @GetMapping("/or/not/{followUserId}")

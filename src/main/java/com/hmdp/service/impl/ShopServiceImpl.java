@@ -122,7 +122,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 //                this::getById
 //        );
         if (shop == null) {
-            return Result.fail("no exist");
+            return Result.error("no exist");
         }
         return Result.ok(shop);
     }

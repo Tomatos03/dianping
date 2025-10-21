@@ -49,7 +49,7 @@ public class UserController {
         // 查询用户
         UserDTO userDTO = userService.queryUserById(id);
         if (userDTO == null) {
-            return Result.fail("用户不存在");
+            return Result.error("用户不存在");
         }
         return Result.ok(userDTO);
     }
@@ -62,7 +62,7 @@ public class UserController {
     public Result login(@RequestBody LoginFormDTO loginForm, HttpServletResponse response) {
         String token = userService.login(loginForm, response);
         if (token == null || token.isEmpty()) {
-            return Result.fail("登录失败，手机号或验证码错误");
+            return Result.error("登录失败，手机号或验证码错误");
         }
         return Result.ok(token);
     }
@@ -74,7 +74,7 @@ public class UserController {
     @PostMapping("/logout")
     public Result logout(HttpServletResponse response, HttpServletRequest request){
         boolean isLogout = userService.logout(response, request);
-        return isLogout ? Result.ok() : Result.fail("登出失败");
+        return isLogout ? Result.ok() : Result.error("登出失败");
     }
 
     @GetMapping("/me")
@@ -100,7 +100,7 @@ public class UserController {
     @PostMapping("/sign")
     public Result userSignIn() {
         boolean isSign = userService.userSignIn();
-        return isSign ? Result.ok() : Result.fail("签到失败");
+        return isSign ? Result.ok() : Result.error("签到失败");
     }
     @GetMapping("/sign/count")
     public Result querySignCount() {
