@@ -46,7 +46,7 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
                                   .orderByAsc("sort")
                                   .list();
         if (Objects.isNull(newTypeList)) {
-            return Result.fail("no exist!");
+            return Result.error("no exist!");
         }
 
         for (ShopType shopType : newTypeList) {

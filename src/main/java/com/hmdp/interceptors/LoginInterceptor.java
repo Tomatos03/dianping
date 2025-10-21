@@ -40,25 +40,22 @@ public class LoginInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//        HttpSession session = request.getSession();
-//        Object user = session.getAttribute("user");
-//        if (user == null) {
-//            response.setStatus(401);
-//            return false;
-//        }
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+//        log.info("请求被LoginInterceptor拦截: {}", request.getRequestURI());
         String token = request.getHeader("authorization");
         if (token == null || StrUtil.isBlank(token)) {
             Cookie[] cookies = request.getCookies();
-            for (Cookie cookie : cookies) {
-                if (StrUtil.equals(cookie.getName(), "token")) {
-                    token = cookie.getValue();
-                    break;
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (StrUtil.equals(cookie.getName(), "token")) {
+                        token = cookie.getValue();
+                        break;
+                    }
                 }
             }
         }
 
-        if (token == null || StrUtil.isBlank(token)) {
+        if (StrUtil.isBlank(token)) {
             response.setStatus(401);
             return false;
         }

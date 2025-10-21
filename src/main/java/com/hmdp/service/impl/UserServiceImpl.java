@@ -49,7 +49,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
     @Override
     public Result sendCode(String phone, HttpSession session) {
         if (RegexUtils.isPhoneInvalid(phone)) {
-            return Result.fail("手机号格式错误");
+            return Result.error("手机号格式错误");
         }
 
         String code = RandomUtil.randomNumbers(6);
@@ -71,7 +71,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
             return null;
         }
 
-//        String code = (String) session.getAttribute("code");
         String phoneKey = RedisConstants.LOGIN_CODE_KEY + phone;
         String code = stringRedisTemplate.opsForValue().get(phoneKey);
         if (code == null || !code.equals(loginFormDTO.getCode())) {
@@ -100,7 +99,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
         cookie.setMaxAge(60 * 60 * 24 * 7); // 设置cookie的有效期为7天
         cookie.setHttpOnly(true);
         response.addCookie(cookie);
-        //        session.setAttribute("user", BeanUtil.copyProperties(userDTO, com.hmdp.dto.UserDTO.class));
         return token;
     }
 
@@ -181,8 +179,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDTO> implements
     private UserDTO createdUserWithPhone(String phone) {
         UserDTO userDTO = new UserDTO();
         userDTO.setPhone(phone);
+
         String randomUserName = SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomNumbers(10);
         userDTO.setNickName(randomUserName);
+
         save(userDTO);
         return userDTO;
     }

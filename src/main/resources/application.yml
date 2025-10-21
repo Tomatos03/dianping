@@ -1,0 +1,56 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: dianping
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://127.0.0.1:3306/hmdp?useSSL=false&serverTimezone=UTC
+    username: Tomatos
+    password: 20030503
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: zjlljz
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: Tomatos03
+    password: 20030503
+    virtual-host: my_vhost
+    # 消息到达或无法到达交换机时的回调
+    publisher-confirm-type: correlated          # 开启发布确认（异步回调）
+    # 消息到达交换机, 但路由失败时的回调
+    publisher-returns: true                     # 开启消息返回机制
+    # 保证生产者消息可靠性
+    template:
+      retry:
+        enabled: false                           # 开启重试
+        max-attempts: 3                         # 最大重试次数
+        initial-interval: 1000                  # 初始重试间隔(ms)
+        multiplier: 2.0                         # 重试间隔倍数
+        max-interval: 10000                     # 最大重试间隔(ms)
+    # 保证消费者消息可靠性
+    listener:
+      simple:
+        prefetch: 1                            # 每次预取消息数量
+        retry:
+          enabled: true                         # 开启重试
+          max-attempts: 3                       # 最大重试次数
+          initial-interval: 1000                # 初始重试间隔(ms)
+          multiplier: 2.0                       # 重试间隔倍数
+          max-interval: 10000                   # 最大重试间隔(ms)
+
+  jackson:
+    default-property-inclusion: non_null # JSON处理时忽略非空字段
+mybatis-plus:
+  type-aliases-package: com.hmdp.entity # 别名扫描包
+logging:
+  level:
+    com.hmdp: debug

@@ -36,7 +36,7 @@ public class RedisWorker {
         String key = String.format("incr:%s:%s", prefixKey, nowDate);
 
         Long count = stringRedisTemplate.opsForValue()
-                                            .increment(key);
+                                        .increment(key);
         return timeStamp << BASE_COUNT | count;
     }
 }
